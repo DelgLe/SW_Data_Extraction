@@ -82,41 +82,13 @@ def extract_custom_properties(sw_model) -> Dict[str, str]:
             # Extract all custom properties
             for prop_name in prop_names:
                 try:
-                    # Use Get4 method to get both raw and evaluated values (like C# example)
-                    # Get4(PropertyName, UseCache, out Value, out EvaluatedValue)
-                    get_result = prop_manager.Get4(prop_name, False)
-                    
-                    if get_result and isinstance(get_result, tuple) and len(get_result) >= 3:
-                        # get_result = (status, raw_value, evaluated_value)
-                        status = get_result[0]
-                        raw_value = get_result[1] if get_result[1] else ""
-                        evaluated_value = get_result[2] if get_result[2] else ""
-                        
-                        # Prefer evaluated value over raw value
-                        final_value = evaluated_value if evaluated_value else raw_value
-                        metadata[f"Custom_{prop_name}"] = final_value
-                        
-                        print(f"  {prop_name}: '{raw_value}' -> '{evaluated_value}'")
-                        
+                    get_result = prop_manager.Get(prop_name)
+                    if get_result and isinstance(get_result, str):
+                        metadata[f"Custom_{prop_name}"] = get_result
                         if prop_name in key_custom_props:
                             found_custom_props.add(prop_name)
-                    else:
-                        # Fallback to regular Get method
-                        get_result = prop_manager.Get(prop_name)
-                        if get_result and isinstance(get_result, str):
-                            metadata[f"Custom_{prop_name}"] = get_result
-                            if prop_name in key_custom_props:
-                                found_custom_props.add(prop_name)
-                        
                 except Exception as e:
                     print(f"Error getting custom property {prop_name}: {e}")
-                    # Try fallback method
-                    try:
-                        get_result = prop_manager.Get(prop_name)
-                        if get_result and isinstance(get_result, str):
-                            metadata[f"Custom_{prop_name}"] = get_result
-                    except:
-                        pass
             
             # Ensure key custom properties are always present
             for key_prop in key_custom_props:
